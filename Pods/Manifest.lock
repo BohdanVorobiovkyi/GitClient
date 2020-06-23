@@ -1,0 +1,26 @@
+PODS:
+  - Kingfisher (5.14.0):
+    - Kingfisher/Core (= 5.14.0)
+  - Kingfisher/Core (5.14.0)
+  - ProgressHUD (2.70)
+  - SnapKit (5.0.1)
+
+DEPENDENCIES:
+  - Kingfisher
+  - ProgressHUD
+  - SnapKit
+
+SPEC REPOS:
+  trunk:
+    - Kingfisher
+    - ProgressHUD
+    - SnapKit
+
+SPEC CHECKSUMS:
+  Kingfisher: 7b64389a43139c903ec434788344c288217c792d
+  ProgressHUD: e603e8b8622c47d8818b9fb38b3cfe9d3e7ca421
+  SnapKit: 97b92857e3df3a0c71833cce143274bf6ef8e5eb
+
+PODFILE CHECKSUM: a66aa216b5bfada2d649318d5e5c6a60bc59445d
+
+COCOAPODS: 1.9.2

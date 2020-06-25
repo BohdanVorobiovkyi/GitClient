@@ -117,6 +117,7 @@ extension SearchViewController: UICollectionViewDelegate {
         if ((collectionView.contentOffset.y + collectionView.frame.size.height) >= collectionView.contentSize.height * 0.8)
         {
             let text = searchBar.text ?? ""
+            ProgressHUD.show()
             dataController.loadNextPage(text: text)
         }
     }
@@ -165,6 +166,7 @@ extension SearchViewController: UISearchBarDelegate {
         self.searchBar.showsCancelButton = true
         self.dataController.search(text: "")
         self.collectionView.endEditing(true)
+        ProgressHUD.dismiss()
     }
 }
 

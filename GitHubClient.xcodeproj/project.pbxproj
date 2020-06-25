@@ -104,6 +104,7 @@
 			children = (
 				AE938FE6249D11820033C92A /* AppDelegate.swift */,
 				AE938FF7249D11860033C92A /* Info.plist */,
+				AE938FEF249D11820033C92A /* GitHubClient.xcdatamodeld */,
 				AE93900F24A0BD220033C92A /* Services */,
 				AE93900C24A0BCF20033C92A /* DataSource+Presenter */,
 				AE93900B24A0BCEA0033C92A /* Models */,
@@ -111,9 +112,6 @@
 				AE93900D24A0BCFC0033C92A /* Views */,
 				AE93904424A1DE4D0033C92A /* Extensions */,
 				AE93901824A13E840033C92A /* Storyboard */,
-				AE938FEF249D11820033C92A /* GitHubClient.xcdatamodeld */,
-				AE938FF4249D11860033C92A /* LaunchScreen.storyboard */,
-				AE938FF2249D11860033C92A /* Assets.xcassets */,
 				AE93904F24A2239D0033C92A /* Resources */,
 			);
 			path = GitHubClient;
@@ -165,6 +163,7 @@
 		AE93901824A13E840033C92A /* Storyboard */ = {
 			isa = PBXGroup;
 			children = (
+				AE938FF4249D11860033C92A /* LaunchScreen.storyboard */,
 				AE938FEC249D11820033C92A /* Main.storyboard */,
 			);
 			path = Storyboard;
@@ -184,6 +183,7 @@
 		AE93904F24A2239D0033C92A /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				AE938FF2249D11860033C92A /* Assets.xcassets */,
 			);
 			path = Resources;
 			sourceTree = "<group>";

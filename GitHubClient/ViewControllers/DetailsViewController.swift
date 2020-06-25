@@ -144,7 +144,7 @@ class DetailsViewController: UIViewController {
         
         topSeparator.snp.makeConstraints { (make) in
             make.top.leading.trailing.equalToSuperview()
-            make.height.width.equalTo(20)
+            make.height.equalTo(20)
         }
         
         avatarView.snp.makeConstraints { (make) in

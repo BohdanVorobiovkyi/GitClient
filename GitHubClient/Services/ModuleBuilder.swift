@@ -16,7 +16,7 @@ protocol Builder {
 class ModuleBuilder: Builder {
     static func createController() -> UIViewController {
         let service = NetworkService()
-        let searchVC = SearchViewController()
+        let searchVC = SearchViewController(nibName: nil, bundle: nil)
         let presenter = SearchPresenter(view: searchVC, service: service)
         print(presenter)
         searchVC.presenter = presenter
@@ -24,5 +24,11 @@ class ModuleBuilder: Builder {
     }
     
     
-    
+    static func createDetailsController(for item: Item) -> UIViewController {
+        let detailsVC = DetailsViewController()
+        let presenter = DetailsPresenter(view: detailsVC, item: item)
+        detailsVC.presenter = presenter
+        return detailsVC
+        
+    }
 }

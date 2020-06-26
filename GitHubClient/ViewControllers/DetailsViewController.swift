@@ -18,6 +18,7 @@ class DetailsViewController: UIViewController {
     let dateFormatter = DateFormatter()
     var gitLink: String? = ""
     
+    var presenter: DetailsViewPresenterProtocol!
     
     private lazy var avatarView: UIImageView = {
         let iv = UIImageView()
@@ -89,6 +90,7 @@ class DetailsViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .white
         setupNavigationBar()
         setupViews()
     }
@@ -192,4 +194,39 @@ class DetailsViewController: UIViewController {
     }
 }
 
+
+extension DetailsViewController: DetailsViewProtocol {
+  
+    func setImage(stringUrl: String?) {
+        if let url = stringUrl {
+             avatarView.setCachedImage(urlString: url)
+        }
+    }
+    
+    func configure(with title: String?, description: String?, date: String, language: String?, htmlURL: String) {
+        titleLabel.text = title
+        descriptionLabel.text = description
+        setURLTarget(urlString: htmlURL)
+        languageLabel.text = language
+        dateLabel.text = date
+    }
+    
+   
+    
+    func configure(with: Item) {
+        if let urlString = with.owner.avatarURL {
+                    }
+        titleLabel.text = with.fullName
+        descriptionLabel.text = with.itemDescription
+        //        repoLinkLabel.text = model.htmlURL
+        setURLTarget(urlString: with.htmlURL)
+        if let language = with.language {
+            languageLabel.text = "Language: " + language
+        }
+        dateLabel.text = "Updated at: " + DateFormatter().getStringDate(date: with.updatedAt)
+    }
+    
+    
+    
+}
 

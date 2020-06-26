@@ -34,7 +34,7 @@ class SearchViewController: UIViewController {
         layout.minimumLineSpacing = 20
         layout.minimumInteritemSpacing = 20
         layout.sectionInsetReference = .fromSafeArea
-        let collectionView = UICollectionView(frame: CGRect(x: 0, y: 60, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height - 100), collectionViewLayout: layout)
+        let collectionView = UICollectionView(frame: CGRect(x: 0, y: 60, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height - 100 ), collectionViewLayout: layout)
         collectionView.backgroundColor = UIColor.lightText
         collectionView.collectionViewLayout = layout
         collectionView.backgroundColor = .systemGray
@@ -49,7 +49,7 @@ class SearchViewController: UIViewController {
         setupSearchBar()
         setupTitle()
         setupCollectionView()
-        edgesForExtendedLayout = [.top, .all]
+        edgesForExtendedLayout = [.top, .bottom]
         extendedLayoutIncludesOpaqueBars = false
     }
     
@@ -113,10 +113,9 @@ extension SearchViewController: UICollectionViewDataSource {
 extension SearchViewController: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if let detailsVC = UIStoryboard.init(name: "Main", bundle: Bundle.main).instantiateViewController(withIdentifier: "DetailsVC") as? DetailsViewController {
-            detailsVC.configureVC(with: presenter.item(at: indexPath))
-            self.navigationController?.present(detailsVC, animated: true, completion: nil)
-        }
+        let details = ModuleBuilder.createDetailsController(for: presenter.item(at: indexPath))
+//        details
+        self.navigationController?.present(details, animated: true, completion: nil)
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {

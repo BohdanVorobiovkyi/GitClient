@@ -127,25 +127,29 @@ final class SearchPresenter: NSObject {
         )
     }()
     
-    //MARK: Network request with re-saving results to CD / Next batch load
+   //MARK: Network request with re-saving results to CD / Next batch load
     private func getRequest(searchText: String, page: Int) {
         isLoading = true
-        service.performRequest(querry: searchText, page: page, cahcePolicy: .reloadIgnoringLocalAndRemoteCacheData) { [container = persistentContainer] (result) in
+        service.performRequest(querry: searchText, page: page, cahcePolicy: .reloadIgnoringLocalAndRemoteCacheData) { [weak presenter = self] (result) in
             switch result {
             case .failure(let error):
                 print(error.localizedDescription)
             case .success(let data):
-                let context = container.newBackgroundContext()
+                guard let presenter = presenter else { return }
+                let context = presenter.persistentContainer.newBackgroundContext()
                 func deleteAll() throws {
                     let fetchRequest: NSFetchRequest<NSFetchRequestResult> = SearchItem.fetchRequest()
                     let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
                     deleteRequest.resultType = .resultTypeObjectIDs
-                    let coordinator = container.persistentStoreCoordinator
+                    let coordinator = presenter.persistentContainer.persistentStoreCoordinator
                     let result = try coordinator.execute(deleteRequest, with: context) as! NSBatchDeleteResult
                     let changes: [AnyHashable: Any] = [
                         NSDeletedObjectsKey: result.result as! [NSManagedObjectID]
                     ]
-                    NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [context, container.viewContext])
+                    NSManagedObjectContext.mergeChanges(
+                        fromRemoteContextSave: changes,
+                        into: [context, presenter.persistentContainer.viewContext]
+                    )
                 }
                 func insert(remote: Item) throws {
                     let item = SearchItem(context: context)
@@ -157,31 +161,33 @@ final class SearchPresenter: NSObject {
                     item.updatedAt = remote.updatedAt
                     item.stars = Int64(remote.stars)
                 }
-                context.perform {
-                    do {
-                        let searchResults = try newJSONDecoder().decode(SearchInfoModel.self, from: data)
-                        print(self.currentPage, page)
-                        if self.currentPage >= page {
-                            try deleteAll()
-                            self.currentPage = 1
-                        } else {
-                            self.currentPage += 1
-                        }
-                        
-                        if let searchItems = searchResults.items {
-                            try searchItems.forEach(insert)
-                        }
-                        UserDefaults.standard.set(searchText, forKey: "lastQuerry")
-                        try context.save()
-                    } catch {
-                        self.isLoading = false
-                        let nserror = error as NSError
-                        fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+                do {
+                    let searchResults = try newJSONDecoder().decode(SearchInfoModel.self, from: data)
+                    if presenter.currentPage >= page {
+                        try deleteAll()
+                        presenter.currentPage = 1
+                    } else {
+                        presenter.currentPage += 1
                     }
+                    UserDefaults.standard.set(searchText, forKey: "lastQuerry")
+                    context.perform {
+                        do {
+                            if let searchItems = searchResults.items {
+                                try searchItems.forEach(insert)
+                            }
+                            try context.save()
+                        } catch {
+                            let nserror = error as NSError
+                            fatalError("Core Data error \(nserror), \(nserror.userInfo)")
+                        }
+                    }
+                } catch {
+                    presenter.isLoading = false
+                    let nserror = error as NSError
+                    fatalError("Decoding error \(nserror), \(nserror.userInfo)")
                 }
             }
         }
-        
     }
     
     // MARK: NotificationCenter for contextChange

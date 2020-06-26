@@ -42,9 +42,11 @@ class ResultCell: UICollectionViewCell {
     
     private lazy var languageLabel: UILabel = {
         let label = UILabel()
-        label.numberOfLines = 0
+        label.numberOfLines = 1
         label.font = MocConstants.font?.withSize(14)
+        label.adjustsFontSizeToFitWidth = true
         label.translatesAutoresizingMaskIntoConstraints = false
+        
         return label
     }()
     
@@ -58,12 +60,14 @@ class ResultCell: UICollectionViewCell {
     }()
     
     private lazy var starsNumberLabel: UILabel = {
-           let label = UILabel()
-           label.numberOfLines = 0
-           label.font = MocConstants.font?.withSize(10)
-           label.translatesAutoresizingMaskIntoConstraints = false
-           return label
-       }()
+        let label = UILabel()
+        label.numberOfLines = 1
+        label.setContentCompressionResistancePriority(UILayoutPriority.init(rawValue: 1000), for: .horizontal)
+        label.textAlignment = .right
+        label.font = MocConstants.font?.withSize(10)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
     
     
     
@@ -126,6 +130,7 @@ class ResultCell: UICollectionViewCell {
         languageLabel.snp.makeConstraints { (make) in
             make.bottom.equalTo(avatarView.snp.bottom).inset(2)
             make.leading.equalTo(titleLabel.snp.leading)
+            make.trailing.equalTo(starsNumberLabel.snp.leading).offset(-2)
         }
         
         starView.snp.makeConstraints { (make) in

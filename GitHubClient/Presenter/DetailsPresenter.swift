@@ -37,7 +37,7 @@ final class DetailsPresenter: DetailsViewPresenterProtocol {
         }
         let titleText = item.fullName
         let descriptionText = item.itemDescription
-        let languageText = item.language?.count != 0 ? "Language: \(item.language!) " : ""
+        let languageText = item.language != nil ? "Language: \(item.language!) " : ""
         let dateText = "Updated at: " + DateFormatter().getStringDate(date: item.updatedAt)
 //              dateLabel.text = "Updated at: " + DateFormatter().getStringDate(date: with.updatedAt)
         view?.configure(with: titleText, description: descriptionText, date: dateText, language: languageText, htmlURL: item.htmlURL)

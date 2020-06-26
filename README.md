@@ -1,8 +1,11 @@
 # GitClient
 App for searching repositories on GitHub. (iOS 12.0)
 
-DataController class -> class for working with datasource.
-NetworkService class -> networking class.
+FIXES:
+- MVP. Presenters for SearchViewController and DetailsViewController. 
+- No storyboards. ModuleBuilder for creation viewControllers. (//TODO: Coordinator)
+- Fixed constraints issues (no SnapKit warnings). 
+- Fixed capturelist issues.
 
 Cocoa:
 Kingfisher > Images (Downloading/ Caching/ Retrieving images)

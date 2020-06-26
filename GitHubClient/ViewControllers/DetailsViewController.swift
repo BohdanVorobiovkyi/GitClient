@@ -138,14 +138,21 @@ class DetailsViewController: UIViewController {
     
     private func setupConstraints() {
         
-        let topSeparator: UIView = UIView()
-        topSeparator.backgroundColor = .systemGray
+        let topSeparator: UIView = UIView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 80))
+        let gradient = CAGradientLayer()
+        gradient.colors = [UIColor.darkText.cgColor , UIColor.white.cgColor ]
+        gradient.startPoint = CGPoint(x: 0.0, y: 0.0)
+        gradient.endPoint = CGPoint(x: 0.0, y: 0.3)
+        gradient.locations = [0.0 , 1.0]
+        gradient.frame = topSeparator.frame
+        topSeparator.layer.insertSublayer(gradient, at: 0)//        topSeparator.backgroundColor = .darkText
         view.addSubview(topSeparator)
+        view.sendSubviewToBack(topSeparator)
         
-        topSeparator.snp.makeConstraints { (make) in
-            make.top.leading.trailing.equalToSuperview()
-            make.height.equalTo(20)
-        }
+//        topSeparator.snp.makeConstraints { (make) in
+//            make.top.leading.trailing.equalToSuperview()
+//            make.height.equalTo(20)
+//        }
         
         avatarView.snp.makeConstraints { (make) in
             make.top.equalToSuperview().inset(40)
@@ -172,9 +179,10 @@ class DetailsViewController: UIViewController {
         }
         
         gitLinkButton.snp.makeConstraints { (make) in
-            make.bottom.equalToSuperview().inset(15)
-            make.height.equalTo(30)
-            make.centerX.equalToSuperview()
+            make.bottom.equalToSuperview().inset(30)
+            make.height.equalTo(40)
+            make.centerX.equalToSuperview().offset(-18)
+            
         }
         
         dateLabel.snp.makeConstraints { (make) in

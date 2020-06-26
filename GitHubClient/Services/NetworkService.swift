@@ -21,7 +21,7 @@ class NetworkService {
         case unknownError
     }
     
-    static func performRequest(querry: String?, page: Int , cahcePolicy: URLRequest.CachePolicy, completion: @escaping (Result<Data, Error>) -> Void)  {
+     func performRequest(querry: String?, page: Int , cahcePolicy: URLRequest.CachePolicy, completion: @escaping (Result<Data, Error>) -> Void)  {
         
         let baseUrl: String = NetworkService.baseUrl
         guard let searchRepo = querry else {return}

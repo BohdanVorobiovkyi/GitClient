@@ -16,59 +16,66 @@ protocol NextPageDelegate: class {
 
 class SearchViewController: UIViewController {
     
-    let dataController = DataController()
+
     private let reuseIdentifier = "SearchCell"
-    
-    
-    @IBOutlet weak var searchBar: UISearchBar!
-    //    @IBOutlet weak var collectionView: UICollectionView!
-    
+    var presenter: SearchViewPresenterProtocol!
+
+    private lazy var searchBar: UISearchBar = {
+        let sb = UISearchBar(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: 60))
+        sb.translatesAutoresizingMaskIntoConstraints = true
+        sb.showsCancelButton = true
+        sb.isTranslucent = true
+        return sb
+    }()
+   
     private lazy var collectionView : UICollectionView = {
-        //        let collection = UICollectionView()
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
         layout.minimumLineSpacing = 20
         layout.minimumInteritemSpacing = 20
         layout.sectionInsetReference = .fromSafeArea
-        let collectionView = UICollectionView(frame: CGRect(x: 0, y: searchBar.frame.height, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height), collectionViewLayout: layout)
+        let collectionView = UICollectionView(frame: CGRect(x: 0, y: 60, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height - 100), collectionViewLayout: layout)
         collectionView.backgroundColor = UIColor.lightText
         collectionView.collectionViewLayout = layout
         collectionView.backgroundColor = .systemGray
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         return collectionView
     }()
-    //    
-    //    let collectionView = UICollectionView()
-    
-    private var searchDelayer = Timer()
-    
-    
+
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        dataController.delegate = self
+        self.view.addSubview(searchBar)
         setupSearchBar()
         setupTitle()
         setupCollectionView()
-        
+        edgesForExtendedLayout = [.top, .all]
+        extendedLayoutIncludesOpaqueBars = false
+    }
+    
+    private func setupSearchBar() {
+        self.searchBar.text = presenter.lastQuerryText
+        searchBar.delegate = self
+        // Cancel Button Color
+        UIBarButtonItem.appearance(whenContainedInInstancesOf: [UISearchBar.self]).setTitleTextAttributes([NSAttributedString.Key(rawValue: NSAttributedString.Key.foregroundColor.rawValue): UIColor.lightGray], for: .disabled)
+        UIBarButtonItem.appearance(whenContainedInInstancesOf: [UISearchBar.self]).setTitleTextAttributes([NSAttributedString.Key(rawValue: NSAttributedString.Key.foregroundColor.rawValue): UIColor.darkGray], for: .normal)
     }
     
     private func setupTitle() {
-        self.searchBar.text = dataController.title
         let iv = UIImageView(frame: CGRect(x: 0, y: 0, width: 60, height: 28))
         iv.contentMode = .scaleAspectFit
         iv.image = MocConstants.topLogo
         self.navigationItem.titleView = iv
-        
     }
     
     private func setupCollectionView() {
         self.view.addSubview(collectionView)
         collectionView.delegate = self
         collectionView.dataSource = self
+        collectionView.keyboardDismissMode = .onDrag
         collectionView.backgroundColor = .lightGray
         collectionView.register(ResultCell.self, forCellWithReuseIdentifier: reuseIdentifier)
-        collectionView.contentInset = UIEdgeInsets(top: 20, left: 40, bottom: 20, right: 40)
+        collectionView.contentInset = UIEdgeInsets(top: 20, left: 40, bottom: 0, right: 40)
     }
 }
 
@@ -81,35 +88,34 @@ extension SearchViewController: UICollectionViewDelegateFlowLayout {
 }
 
 extension SearchViewController: UICollectionViewDataSource {
-    
+
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return dataController.itemsCount
+        return  presenter.itemsCount
     }
-    
-    
+
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if dataController.itemsCount == 1 {
+        if presenter.itemsCount == 1 {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! ResultCell
             cell.isUserInteractionEnabled = false
             let searchText = searchBar.text ?? ""
-            let noMatchesModel = Item(id: 0, fullName: "No matches found with your reques \"\(searchText)\"", owner: Owner(login: "", avatarURL: "https://images.app.goo.gl/PBRqp2bCv7xW43KC8"), htmlURL: "", itemDescription: "", forks: 0, createdAt: Date(), updatedAt: Date(), stars: 0, language: nil)
+            let noMatchesModel = presenter.noResultsItem(for: searchText)
             cell.configureCell(model: noMatchesModel)
             return cell
         }
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! ResultCell
         cell.isUserInteractionEnabled = true
-        cell.configureCell(model: dataController.item(at: indexPath))
+        cell.configureCell(model: presenter.item(at: indexPath))
         return cell
     }
-    
+
 }
 extension SearchViewController: UICollectionViewDelegate {
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if let detailsVC = UIStoryboard.init(name: "Main", bundle: Bundle.main).instantiateViewController(withIdentifier: "DetailsVC") as? DetailsViewController {
-            detailsVC.configureVC(with: dataController.item(at: indexPath))
+            detailsVC.configureVC(with: presenter.item(at: indexPath))
             self.navigationController?.present(detailsVC, animated: true, completion: nil)
-            //            self.navigationController?.pushViewController(detailsVC, animated: true)
         }
     }
     
@@ -118,7 +124,7 @@ extension SearchViewController: UICollectionViewDelegate {
         {
             let text = searchBar.text ?? ""
             ProgressHUD.show()
-            dataController.loadNextPage(text: text)
+            presenter.loadNextPage(text: text)
         }
     }
 }
@@ -126,53 +132,26 @@ extension SearchViewController: UICollectionViewDelegate {
 
 extension SearchViewController: UISearchBarDelegate {
     
-    private func setupSearchBar() {
-        searchBar.delegate = self
-        // Cancel Button Color
-        UIBarButtonItem.appearance(whenContainedInInstancesOf: [UISearchBar.self]).setTitleTextAttributes([NSAttributedString.Key(rawValue: NSAttributedString.Key.foregroundColor.rawValue): UIColor.lightGray], for: .disabled)
-        UIBarButtonItem.appearance(whenContainedInInstancesOf: [UISearchBar.self]).setTitleTextAttributes([NSAttributedString.Key(rawValue: NSAttributedString.Key.foregroundColor.rawValue): UIColor.darkGray], for: .normal)
-    }
-    
-    @objc private func search(_ gesture: UITapGestureRecognizer) {
-//        if let text = searchBar.text , text.count > 0 {
-//            ProgressHUD.show()
-//            dataController.search(text: text)
-//        }
-    }
-    
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         if let text = searchBar.text , text.count > 0 {
             ProgressHUD.show()
-            dataController.search(text: text)
+            presenter.search(text: text, page: 1)
         }
-    }
-    
-//    private func adjustSearch() {
-//        if let text = searchBar.text , text.count > 0 {
-//            ProgressHUD.show()
-//            dataController.search(text: text)
-//        }
-//    }
-    
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        searchDelayer.invalidate()
-        searchDelayer = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(search(_:)), userInfo: searchText, repeats: false)
-        
     }
     
     func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         ProgressHUD.show()
         self.searchBar.text?.removeAll()
         self.searchBar.showsCancelButton = true
-        self.dataController.search(text: "")
+        self.presenter.search(text: "", page: 1)
         self.collectionView.endEditing(true)
         ProgressHUD.dismiss()
     }
 }
 
-extension SearchViewController : DataControllerDelegate {
-    
-    func presenterDidUpdateData(presenter: DataController) {
+extension SearchViewController: SearchViewProtocol {
+ 
+    func updateCollection() {
         collectionView.reloadData()
         ProgressHUD.showSuccess()
     }

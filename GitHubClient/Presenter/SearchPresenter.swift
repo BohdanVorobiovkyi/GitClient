@@ -1,24 +1,80 @@
 //
-//  File.swift
+//  SearchPresenter.swift
 //  GitHubClient
 //
-//  Created by usr01 on 23.06.2020.
+//  Created by usr01 on 25.06.2020.
 //  Copyright © 2020 bhdn. All rights reserved.
 //
 
 import Foundation
 import CoreData
 
-protocol DataControllerDelegate: class {
-    func presenterDidUpdateData(presenter: DataController)
+
+protocol SearchViewProtocol: class {
+    func updateCollection()
 }
 
-final class DataController: NSObject {
+protocol SearchViewPresenterProtocol: class {
+    var itemsCount: Int { get }
+    var lastQuerryText: String { get }
     
-    lazy var title: String = {
+    init(view: SearchViewProtocol, service: NetworkService)
+    func item(at indexPath: IndexPath) -> Item
+    func noResultsItem(for querry: String) -> Item
+    func loadNextPage(text: String)
+    func search(text: String, page: Int )
+    
+}
+
+extension SearchPresenter: SearchViewPresenterProtocol {
+    func noResultsItem(for querry: String) -> Item {
+       return Item(id: 0, fullName: "No matches found with your reques \"\(querry)\"", owner: Owner(login: "", avatarURL: "https://images.app.goo.gl/PBRqp2bCv7xW43KC8"), htmlURL: "", itemDescription: "", forks: 0, createdAt: Date(), updatedAt: Date(), stars: 0, language: nil)
+    }
+    
+    
+    func item(at indexPath: IndexPath) -> Item {
+        let item = fetchedResultsController.object(at: indexPath)
+        let id = item.id.hashValue
+        return Item(
+            id: id,
+            fullName: item.fullName,
+            owner: Owner(
+                login: item.login ?? "",
+                avatarURL: item.avatarURL
+            ),
+            htmlURL: item.htmlURL ?? "",
+            itemDescription: item.itemDescription,
+            forks: Int(item.forks),
+            createdAt: Date(),
+            updatedAt: item.updatedAt ?? Date(),
+            stars: Int(item.stars),
+            language: item.language
+        )
+    }
+    
+    func search(text: String, page: Int) {
+        if !isLoading {
+            getRequest(searchText: text, page: currentPage)
+        }
+    }
+    
+    func loadNextPage(text: String) {
+        if let lastquerry = UserDefaults.standard.object(forKey: "lastQuerry"), lastquerry as! String == text, !isLoading {
+            getRequest(searchText:text, page: currentPage + 1)
+        }
+    }
+}
+
+
+final class SearchPresenter: NSObject {
+    
+    private weak var view: SearchViewProtocol!
+    private let service: NetworkService
+    
+    lazy var lastQuerryText: String = {
         if let lastquerry = UserDefaults.standard.object(forKey: "lastQuerry"){
             return "\(lastquerry)"
-        } 
+        }
         return ""
     }()
     
@@ -26,15 +82,28 @@ final class DataController: NSObject {
         if let numberOfObjects =  fetchedResultsController.sections?.first?.numberOfObjects {
             return numberOfObjects == 0 ? 1 : numberOfObjects
         }
-        //        print("result", fetchedResultsController.sections?.count)
         return 1
     }
     
-    
     private var isLoading: Bool = false
     private var currentPage: Int = 1
-    weak var delegate: DataControllerDelegate?
     
+    
+    required init(view: SearchViewProtocol, service: NetworkService) {
+        self.view = view
+        self.service = service
+        super.init()
+        fetchedResultsController.delegate = self
+        do {
+            try fetchedResultsController.performFetch()
+        } catch {
+            let nserror = error as NSError
+            fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+        }
+        subscribeToContextDidSaveNotification()
+    }
+    
+    //MARK: CoreData container an fetchedResultsController
     private lazy var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "GitHubClient")
         container.loadPersistentStores { (storeDescription, error) in
@@ -58,55 +127,10 @@ final class DataController: NSObject {
         )
     }()
     
-    override init() {
-        super.init()
-        fetchedResultsController.delegate = self
-        do {
-            try fetchedResultsController.performFetch()
-        } catch {
-            let nserror = error as NSError
-            fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
-        }
-        subscribeToContextDidSaveNotification()
-    }
-    
-    
-    
-    func item(at indexPath: IndexPath) -> Item {
-        let item = fetchedResultsController.object(at: indexPath)
-        let id = item.id.hashValue
-        return Item(
-            id: id,
-            fullName: item.fullName,
-            owner: Owner(
-                login: item.login ?? "",
-                avatarURL: item.avatarURL
-            ),
-            htmlURL: item.htmlURL ?? "",
-            itemDescription: item.itemDescription,
-            forks: Int(item.forks),
-            createdAt: Date(),
-            updatedAt: item.updatedAt ?? Date(),
-            stars: Int(item.stars),
-            language: item.language
-        )
-    }
-    
-    func search(text: String, page: Int = 1) {
-        if !isLoading {
-        getRequest(searchText: text, page: currentPage)
-        }
-    }
-    
-    func loadNextPage(text: String) {
-        if let lastquerry = UserDefaults.standard.object(forKey: "lastQuerry"), lastquerry as! String == text, !isLoading {
-            getRequest(searchText:text, page: currentPage + 1)
-        }
-    }
-    
+    //MARK: Network request with re-saving results to CD / Next batch load
     private func getRequest(searchText: String, page: Int) {
         isLoading = true
-        NetworkService.performRequest(querry: searchText, page: page, cahcePolicy: .reloadIgnoringLocalAndRemoteCacheData) { [container = persistentContainer] (result) in
+        service.performRequest(querry: searchText, page: page, cahcePolicy: .reloadIgnoringLocalAndRemoteCacheData) { [container = persistentContainer] (result) in
             switch result {
             case .failure(let error):
                 print(error.localizedDescription)
@@ -147,7 +171,7 @@ final class DataController: NSObject {
                         if let searchItems = searchResults.items {
                             try searchItems.forEach(insert)
                         }
-                        UserDefaults.standard.set(searchText, forKey: "lastQuerry") 
+                        UserDefaults.standard.set(searchText, forKey: "lastQuerry")
                         try context.save()
                     } catch {
                         self.isLoading = false
@@ -160,10 +184,9 @@ final class DataController: NSObject {
         
     }
     
-    // MARK: NotificationCenter
+    // MARK: NotificationCenter for contextChange
     
     private let center: NotificationCenter = .default
-    
     private var contextChangeObserver: NSObjectProtocol?
     
     private func subscribeToContextDidSaveNotification() {
@@ -181,18 +204,16 @@ final class DataController: NSObject {
     deinit {
         unsubscribeFromContextDidSaveNotification()
     }
-    
+  
 }
 
-extension DataController : NSFetchedResultsControllerDelegate {
+
+
+extension SearchPresenter : NSFetchedResultsControllerDelegate {
     
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-        delegate?.presenterDidUpdateData(presenter: self)
+        self.view.updateCollection()
         self.isLoading = false
     }
     
 }
-
-
-
-

@@ -18,7 +18,7 @@ protocol SearchViewPresenterProtocol: class {
     var itemsCount: Int { get }
     var lastQuerryText: String { get }
     
-    init(view: SearchViewProtocol, service: NetworkService)
+    init(view: SearchViewProtocol)
     func item(at indexPath: IndexPath) -> Item
     func noResultsItem(for querry: String) -> Item
     func loadNextPage(text: String)
@@ -69,8 +69,9 @@ extension SearchPresenter: SearchViewPresenterProtocol {
 final class SearchPresenter: NSObject {
     
     private weak var view: SearchViewProtocol!
-    private let service: NetworkService
-    
+    private var isLoading: Bool = false
+    private var currentPage: Int = 1
+
     lazy var lastQuerryText: String = {
         if let lastquerry = UserDefaults.standard.object(forKey: "lastQuerry"){
             return "\(lastquerry)"
@@ -85,13 +86,8 @@ final class SearchPresenter: NSObject {
         return 1
     }
     
-    private var isLoading: Bool = false
-    private var currentPage: Int = 1
-    
-    
-    required init(view: SearchViewProtocol, service: NetworkService) {
+    required init(view: SearchViewProtocol) {
         self.view = view
-        self.service = service
         super.init()
         fetchedResultsController.delegate = self
         do {
@@ -130,25 +126,25 @@ final class SearchPresenter: NSObject {
    //MARK: Network request with re-saving results to CD / Next batch load
     private func getRequest(searchText: String, page: Int) {
         isLoading = true
-        service.performRequest(querry: searchText, page: page, cahcePolicy: .reloadIgnoringLocalAndRemoteCacheData) { [weak presenter = self] (result) in
+        NetworkService.performRequest(querry: searchText, page: page, cahcePolicy: .reloadIgnoringLocalAndRemoteCacheData) { [weak self] (result) in
             switch result {
             case .failure(let error):
                 print(error.localizedDescription)
             case .success(let data):
-                guard let presenter = presenter else { return }
-                let context = presenter.persistentContainer.newBackgroundContext()
+                guard let strongSelf = self else { return }
+                let context = strongSelf.persistentContainer.newBackgroundContext()
                 func deleteAll() throws {
                     let fetchRequest: NSFetchRequest<NSFetchRequestResult> = SearchItem.fetchRequest()
                     let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
                     deleteRequest.resultType = .resultTypeObjectIDs
-                    let coordinator = presenter.persistentContainer.persistentStoreCoordinator
+                    let coordinator = strongSelf.persistentContainer.persistentStoreCoordinator
                     let result = try coordinator.execute(deleteRequest, with: context) as! NSBatchDeleteResult
                     let changes: [AnyHashable: Any] = [
                         NSDeletedObjectsKey: result.result as! [NSManagedObjectID]
                     ]
                     NSManagedObjectContext.mergeChanges(
                         fromRemoteContextSave: changes,
-                        into: [context, presenter.persistentContainer.viewContext]
+                        into: [context, strongSelf.persistentContainer.viewContext]
                     )
                 }
                 func insert(remote: Item) throws {
@@ -163,11 +159,11 @@ final class SearchPresenter: NSObject {
                 }
                 do {
                     let searchResults = try newJSONDecoder().decode(SearchInfoModel.self, from: data)
-                    if presenter.currentPage >= page {
+                    if strongSelf.currentPage >= page {
                         try deleteAll()
-                        presenter.currentPage = 1
+                        strongSelf.currentPage = 1
                     } else {
-                        presenter.currentPage += 1
+                        strongSelf.currentPage += 1
                     }
                     UserDefaults.standard.set(searchText, forKey: "lastQuerry")
                     context.perform {
@@ -182,7 +178,7 @@ final class SearchPresenter: NSObject {
                         }
                     }
                 } catch {
-                    presenter.isLoading = false
+                    strongSelf.isLoading = false
                     let nserror = error as NSError
                     fatalError("Decoding error \(nserror), \(nserror.userInfo)")
                 }

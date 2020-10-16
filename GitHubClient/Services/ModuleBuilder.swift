@@ -17,7 +17,7 @@ class ModuleBuilder: Builder {
     static func createController() -> UIViewController {
         let service = NetworkService()
         let searchVC = SearchViewController(nibName: nil, bundle: nil)
-        let presenter = SearchPresenter(view: searchVC, service: service)
+        let presenter = SearchPresenter(view: searchVC)
         print(presenter)
         searchVC.presenter = presenter
         return searchVC

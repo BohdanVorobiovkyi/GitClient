@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0446E63574EF4050FDB4A86B /* Pods_GitHubClient.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AC766896A79F1BF94863E3C3 /* Pods_GitHubClient.framework */; };
+		1112D484253992E3003E7553 /* String+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1112D483253992E3003E7553 /* String+Extension.swift */; };
 		AE938FE7249D11820033C92A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE938FE6249D11820033C92A /* AppDelegate.swift */; };
 		AE938FF1249D11820033C92A /* GitHubClient.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = AE938FEF249D11820033C92A /* GitHubClient.xcdatamodeld */; };
 		AE938FF3249D11860033C92A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AE938FF2249D11860033C92A /* Assets.xcassets */; };
@@ -30,6 +31,7 @@
 
 /* Begin PBXFileReference section */
 		0BE7AA293A07262C0E7954CF /* Pods-GitHubClient.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GitHubClient.debug.xcconfig"; path = "Target Support Files/Pods-GitHubClient/Pods-GitHubClient.debug.xcconfig"; sourceTree = "<group>"; };
+		1112D483253992E3003E7553 /* String+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "String+Extension.swift"; sourceTree = "<group>"; };
 		73963276BEFF6E8AD4617EC7 /* Pods-GitHubClient.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GitHubClient.release.xcconfig"; path = "Target Support Files/Pods-GitHubClient/Pods-GitHubClient.release.xcconfig"; sourceTree = "<group>"; };
 		AC766896A79F1BF94863E3C3 /* Pods_GitHubClient.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GitHubClient.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AE938FE3249D11820033C92A /* GitHubClient.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GitHubClient.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -161,6 +163,7 @@
 				AE93904224A1CC680033C92A /* Extension+UIImageView.swift */,
 				AE93904524A20C930033C92A /* Extension+CollectionCell.swift */,
 				AE93904924A20D600033C92A /* Extension+JSONDecoder.swift */,
+				1112D483253992E3003E7553 /* String+Extension.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -305,6 +308,7 @@
 				AE93901124A0FB9B0033C92A /* ResultCell.swift in Sources */,
 				AE93904A24A20D600033C92A /* Extension+JSONDecoder.swift in Sources */,
 				AE93901524A1330B0033C92A /* DetailsViewController.swift in Sources */,
+				1112D484253992E3003E7553 /* String+Extension.swift in Sources */,
 				AE938FE7249D11820033C92A /* AppDelegate.swift in Sources */,
 				AE93904124A1AC410033C92A /* Extension+DateFormatter.swift in Sources */,
 				AE93905824A551A80033C92A /* ModuleBuilder.swift in Sources */,

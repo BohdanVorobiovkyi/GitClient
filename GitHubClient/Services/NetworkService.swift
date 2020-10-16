@@ -11,7 +11,7 @@ import Foundation
 class NetworkService {
     
     static let baseUrl: String = "https://api.github.com/search/repositories"
-    var querry: String = "?q=tetris&sort=stars&order=desc"
+//    var querry: String = "?q=tetris&sort=stars&order=desc"
     
     enum NetworkResult: Swift.Error {
         case noValidUrl
@@ -21,12 +21,12 @@ class NetworkService {
         case unknownError
     }
     
-     func performRequest(querry: String?, page: Int , cahcePolicy: URLRequest.CachePolicy, completion: @escaping (Result<Data, Error>) -> Void)  {
+     static func performRequest(querry: String?, page: Int , cahcePolicy: URLRequest.CachePolicy, completion: @escaping (Result<Data, Error>) -> Void)  {
         
         let baseUrl: String = NetworkService.baseUrl
         guard let searchRepo = querry else {return}
         let querry: String = "?q=\(searchRepo)&sort=stars&per_page=30&page=\(page)"
-        let urlString = "\(baseUrl)\(querry)"
+        let urlString = "\(baseUrl)\(querry)".encodeUrl
         
         guard let url = URL(string: urlString) else {
             completion(.failure(NetworkResult.noValidUrl))
